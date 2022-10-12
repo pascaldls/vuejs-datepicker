@@ -515,12 +515,12 @@
             /**
              * Get each length of day, month, and year
              */
+            // let len = {
+            //   day: formatParts[indexes.day],
+            //   month: formatParts[indexes.month],
+            //   year: formatParts[indexes.year]
+            // }
 
-          };
-          var len = {
-            day: formatParts[indexes.day],
-            month: formatParts[indexes.month],
-            year: formatParts[indexes.year]
             /**
              * Get each value of day, month, and year
              */
@@ -540,39 +540,66 @@
            * Only allow if day, month, and year
            * is already been typed.
            */
+          // if (values.day && values.month && values.year) {
 
-          if (values.day && values.month && values.year) {
-            /**
-             * Check the length of each item (day, month, year)
-             * if its the same with the passed format.
-             */
-            if (values.day.length === len.day.length && values.month.length === len.month.length && values.year.length === len.year.length) {
-              /**
-               * We only support until this month format ("MMM").
-               * No support yet for month format "MMMM"
-               */
-              var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-              /**
-               * Check once month value is 3 characters in length
-               */
+          /**
+           * Check the length of each item (day, month, year)
+           * if its the same with the passed format.
+           */
+          // if (values.day.length === len.day.length && values.month.length === len.month.length && values.year.length === len.year.length) {
 
-              if (values.month.length === 3) {
-                monthNum = monthNames.findIndex(function (name) {
-                  return name === values.month;
-                });
+          /**
+           * We only support until this month format ("MMM").
+           * No support yet for month format "MMMM"
+           */
+
+          var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          /**
+           * Check once month value is 3 characters in length
+           */
+
+          if (values.month && values.month.length === 3) {
+            monthNum = monthNames.findIndex(function (name) {
+              return name === values.month;
+            });
+          }
+          /**
+           * Get the unix timestamp of typed date.
+           */
+          //     typedDate = new Date(values.year, monthNum, values.day).valueOf()
+          //   }
+          // } 
+
+
+          typedDate = this.selectedDate || new Date();
+
+          if (values.year) {
+            if (values.year < 100) {
+              var fy = '' + new Date().getFullYear();
+              var my = fy.slice(-2);
+              var cent = parseInt(fy.slice(0, 2));
+
+              if (values.year < my) {
+                values.year = parseInt(''.concat(cent, values.year));
+              } else {
+                values.year = parseInt(''.concat(cent - 1, values.year));
               }
-              /**
-               * Get the unix timestamp of typed date.
-               */
-
-
-              typedDate = new Date(values.year, monthNum, values.day).valueOf();
             }
+
+            typedDate.setYear(values.year);
           }
 
-          if (!isNaN(typedDate)) {
+          if (values.month && monthNum) {
+            typedDate.setMonth(monthNum);
+          }
+
+          if (values.day) {
+            typedDate.setDate(values.day);
+          }
+
+          if (typedDate) {
             this.typedDate = this.input.value;
-            this.$emit('typedDate', new Date(typedDate));
+            this.$emit('typedDate', typedDate);
           }
         }
       },
@@ -800,15 +827,19 @@
     
     /* style inject SSR */
     
+    /* style inject shadow dom */
+    
 
     
-    var DateInput = normalizeComponent_1(
+    const __vue_component__ = /*#__PURE__*/normalizeComponent_1(
       { render: __vue_render__, staticRenderFns: __vue_staticRenderFns__ },
       __vue_inject_styles__,
       __vue_script__,
       __vue_scope_id__,
       __vue_is_functional_template__,
       __vue_module_identifier__,
+      false,
+      undefined,
       undefined,
       undefined
     );
@@ -1312,15 +1343,19 @@
     
     /* style inject SSR */
     
+    /* style inject shadow dom */
+    
 
     
-    var PickerDay = normalizeComponent_1(
+    const __vue_component__$1 = /*#__PURE__*/normalizeComponent_1(
       { render: __vue_render__$1, staticRenderFns: __vue_staticRenderFns__$1 },
       __vue_inject_styles__$1,
       __vue_script__$1,
       __vue_scope_id__$1,
       __vue_is_functional_template__$1,
       __vue_module_identifier__$1,
+      false,
+      undefined,
       undefined,
       undefined
     );
@@ -1612,15 +1647,19 @@
     
     /* style inject SSR */
     
+    /* style inject shadow dom */
+    
 
     
-    var PickerMonth = normalizeComponent_1(
+    const __vue_component__$2 = /*#__PURE__*/normalizeComponent_1(
       { render: __vue_render__$2, staticRenderFns: __vue_staticRenderFns__$2 },
       __vue_inject_styles__$2,
       __vue_script__$2,
       __vue_scope_id__$2,
       __vue_is_functional_template__$2,
       __vue_module_identifier__$2,
+      false,
+      undefined,
       undefined,
       undefined
     );
@@ -1880,15 +1919,19 @@
     
     /* style inject SSR */
     
+    /* style inject shadow dom */
+    
 
     
-    var PickerYear = normalizeComponent_1(
+    const __vue_component__$3 = /*#__PURE__*/normalizeComponent_1(
       { render: __vue_render__$3, staticRenderFns: __vue_staticRenderFns__$3 },
       __vue_inject_styles__$3,
       __vue_script__$3,
       __vue_scope_id__$3,
       __vue_is_functional_template__$3,
       __vue_module_identifier__$3,
+      false,
+      undefined,
       undefined,
       undefined
     );
@@ -1896,10 +1939,10 @@
   //
   var script$4 = {
     components: {
-      DateInput: DateInput,
-      PickerDay: PickerDay,
-      PickerMonth: PickerMonth,
-      PickerYear: PickerYear
+      DateInput: __vue_component__,
+      PickerDay: __vue_component__$1,
+      PickerMonth: __vue_component__$2,
+      PickerYear: __vue_component__$3
     },
     props: {
       value: {
@@ -2514,19 +2557,23 @@
     const __vue_is_functional_template__$4 = false;
     /* style inject SSR */
     
+    /* style inject shadow dom */
+    
 
     
-    var Datepicker = normalizeComponent_1(
+    const __vue_component__$4 = /*#__PURE__*/normalizeComponent_1(
       { render: __vue_render__$4, staticRenderFns: __vue_staticRenderFns__$4 },
       __vue_inject_styles__$4,
       __vue_script__$4,
       __vue_scope_id__$4,
       __vue_is_functional_template__$4,
       __vue_module_identifier__$4,
+      false,
       browser,
+      undefined,
       undefined
     );
 
-  return Datepicker;
+  return __vue_component__$4;
 
 }));
