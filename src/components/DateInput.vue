@@ -8,7 +8,7 @@
           <span v-if="!calendarButtonIcon">&hellip;</span>
         </i>
       </span>
-    </span>
+    </span> 
     <!-- Input -->
     <input
       :type="inline ? 'hidden' : 'text'"
@@ -149,11 +149,11 @@ export default {
         /**
          * Get each length of day, month, and year
          */
-        let len = {
-          day: formatParts[indexes.day],
-          month: formatParts[indexes.month],
-          year: formatParts[indexes.year]
-        }
+        // let len = {
+        //   day: formatParts[indexes.day],
+        //   month: formatParts[indexes.month],
+        //   year: formatParts[indexes.year]
+        // }
         /**
          * Get each value of day, month, and year
          */
@@ -205,8 +205,8 @@ export default {
         if ( values.year ){
           if ( values.year < 100  ){ 
             let fy = (''+ (new Date()).getFullYear() )  ; 
-            let my  =  (''+ (new Date()).getFullYear() ).slice(-2) ; 
-            let cent = parseInt( (''+ (new Date()).getFullYear() ).slice(0, 2)  ) ;
+            let my  =  fy.slice(-2) ; 
+            let cent = parseInt( fy.slice(0, 2)  ) ;
             if ( values.year < my ) { 
               values.year =   parseInt( ''.concat( cent , values.year ) );
             }else { 
@@ -221,7 +221,7 @@ export default {
         }  
         
 
-        if (!isNaN(typedDate)) {
+        if ( typedDate) {
           this.typedDate = this.input.value ;
           this.$emit('typedDate', typedDate)
         }
