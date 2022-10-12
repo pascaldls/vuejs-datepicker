@@ -11,7 +11,7 @@
 
     <div class="example">
       <h3>Typeable datepicker</h3>
-      <datepicker placeholder="Type or select date" :typeable="true" />
+      <datepicker format="dd/MM/yyyy" value="02/02/2022" placeholder="Type or select date" :typeable="true" />
       <code>
           &lt;datepicker placeholder="Type or select date" :typeable="true"&gt;&lt;/datepicker&gt;
       </code>

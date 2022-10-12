@@ -170,12 +170,12 @@ export default {
          * Only allow if day, month, and year
          * is already been typed.
          */
-        if (values.day && values.month && values.year) {
+        // if (values.day && values.month && values.year) {
           /**
            * Check the length of each item (day, month, year)
            * if its the same with the passed format.
            */
-          if (values.day.length === len.day.length && values.month.length === len.month.length && values.year.length === len.year.length) {
+          // if (values.day.length === len.day.length && values.month.length === len.month.length && values.year.length === len.year.length) {
             /**
              * We only support until this month format ("MMM").
              * No support yet for month format "MMMM"
@@ -189,20 +189,41 @@ export default {
             /**
              * Check once month value is 3 characters in length
              */
-            if (values.month.length === 3) {
+            if ( values.month && values.month.length === 3) {
               monthNum = monthNames.findIndex((name) => {
                 return name === values.month
               })
             }
             /**
              * Get the unix timestamp of typed date.
-             */
-            typedDate = new Date(values.year, monthNum, values.day).valueOf()
+             */ 
+        //     typedDate = new Date(values.year, monthNum, values.day).valueOf()
+        //   }
+        // } 
+ 
+        typedDate = this.selectedDate || new Date ;  
+        if ( values.year ){
+          if ( values.year < 100  ){ 
+            let fy = (''+ (new Date()).getFullYear() )  ; 
+            let my  =  (''+ (new Date()).getFullYear() ).slice(-2) ; 
+            let cent = parseInt( (''+ (new Date()).getFullYear() ).slice(0, 2)  ) ;
+            if ( values.year < my ) { 
+              values.year =   parseInt( ''.concat( cent , values.year ) );
+            }else { 
+              values.year =   parseInt( ''.concat( cent -1 , values.year ) );
+            }
           }
-        } 
+          typedDate.setYear( values.year ) ;}
+        if (values.month &&  monthNum ) {
+          typedDate.setMonth(  monthNum ) ;}
+        if (values.day) { 
+          typedDate.setDate( values.day ) ;
+        }  
+        
+
         if (!isNaN(typedDate)) {
-          this.typedDate = this.input.value
-          this.$emit('typedDate', new Date(typedDate))
+          this.typedDate = this.input.value ;
+          this.$emit('typedDate', typedDate)
         }
       }
     },
