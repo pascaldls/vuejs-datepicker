@@ -1,8 +1,10 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-  typeof define === 'function' && define.amd ? define(factory) :
-  (global = global || self, global.vuejsDatepicker = factory());
-}(this, function () { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('moment')) :
+  typeof define === 'function' && define.amd ? define(['moment'], factory) :
+  (global = global || self, global.vuejsDatepicker = factory(global.moment));
+}(this, function (moment) { 'use strict';
+
+  moment = moment && moment.hasOwnProperty('default') ? moment['default'] : moment;
 
   function _typeof(obj) {
     if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
@@ -442,16 +444,16 @@
           return this.typedDate;
         }
 
-        return typeof this.format === 'function' ? this.format(this.selectedDate) : this.utils.formatDate(new Date(this.selectedDate), this.format, this.translation);
+        return typeof this.format === "function" ? this.format(this.selectedDate) : this.utils.formatDate(new Date(this.selectedDate), this.format, this.translation);
       },
       computedInputClass: function computedInputClass() {
         if (this.bootstrapStyling) {
-          if (typeof this.inputClass === 'string') {
-            return [this.inputClass, 'form-control'].join(' ');
+          if (typeof this.inputClass === "string") {
+            return [this.inputClass, "form-control"].join(" ");
           }
 
           return _objectSpread({
-            'form-control': true
+            "form-control": true
           }, this.inputClass);
         }
 
@@ -465,7 +467,7 @@
     },
     methods: {
       showCalendar: function showCalendar() {
-        this.$emit('showCalendar');
+        this.$emit("showCalendar");
       },
 
       /**
@@ -477,8 +479,7 @@
 
         // close calendar if escape or enter are pressed
         if ([27, // escape
-        13 // enter
-        ].includes(event.keyCode)) {
+        13].includes(event.keyCode)) {
           this.input.blur();
         }
 
@@ -491,10 +492,10 @@
            * Default: "/"
            */
 
-          var separator = [' ', '.', ',', '-', '/'].find(function (val) {
-            var count = (_this.format.match(new RegExp(val, 'g')) || []).length;
+          var separator = [" ", ".", ",", "-", "/"].find(function (val) {
+            var count = (_this.format.match(new RegExp(val, "g")) || []).length;
             return count === 2;
-          }, '/');
+          }, "/");
           var formatParts = this.format.split(separator);
           var dateParts = this.input.value.split(separator);
           /**
@@ -504,37 +505,37 @@
 
           var indexes = {
             day: formatParts.findIndex(function (part) {
-              return part.toLowerCase().includes('d');
+              return part.toLowerCase().includes("d");
             }),
             month: formatParts.findIndex(function (part) {
-              return part.toLowerCase().includes('m');
+              return part.toLowerCase().includes("m");
             }),
             year: formatParts.findIndex(function (part) {
-              return part.toLowerCase().includes('y');
+              return part.toLowerCase().includes("y");
             })
-            /**
-             * Get each length of day, month, and year
-             */
-            // let len = {
-            //   day: formatParts[indexes.day],
-            //   month: formatParts[indexes.month],
-            //   year: formatParts[indexes.year]
-            // }
-
-            /**
-             * Get each value of day, month, and year
-             */
-
           };
+          /**
+           * Get each length of day, month, and year
+           */
+          // let len = {
+          //   day: formatParts[indexes.day],
+          //   month: formatParts[indexes.month],
+          //   year: formatParts[indexes.year]
+          // }
+
+          /**
+           * Get each value of day, month, and year
+           */
+
           var values = {
             day: dateParts[indexes.day],
             month: dateParts[indexes.month],
             year: dateParts[indexes.year]
-            /**
-             * Default month number format
-             */
-
           };
+          /**
+           * Default month number format
+           */
+
           var monthNum = values.month - 1;
           /**
            * Only allow if day, month, and year
@@ -553,7 +554,7 @@
            * No support yet for month format "MMMM"
            */
 
-          var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
           /**
            * Check once month value is 3 characters in length
            */
@@ -568,21 +569,21 @@
            */
           //     typedDate = new Date(values.year, monthNum, values.day).valueOf()
           //   }
-          // } 
+          // }
 
 
           typedDate = this.selectedDate || new Date();
 
           if (values.year) {
             if (values.year < 100) {
-              var fy = '' + new Date().getFullYear();
+              var fy = "" + new Date().getFullYear();
               var my = fy.slice(-2);
               var cent = parseInt(fy.slice(0, 2));
 
               if (values.year < my) {
-                values.year = parseInt(''.concat(cent, values.year));
+                values.year = parseInt("".concat(cent, values.year));
               } else {
-                values.year = parseInt(''.concat(cent - 1, values.year));
+                values.year = parseInt("".concat(cent - 1, values.year));
               }
             }
 
@@ -599,7 +600,7 @@
 
           if (typedDate) {
             this.typedDate = this.input.value;
-            this.$emit('typedDate', typedDate);
+            this.$emit("typedDate", typedDate);
           }
         }
       },
@@ -609,27 +610,35 @@
        * called once the input is blurred
        */
       inputBlurred: function inputBlurred() {
-        if (this.typeable && isNaN(Date.parse(this.input.value))) {
+        if (typeof this.format === "string" && this.typeable) {
+          var mformat = this.format.toUpperCase();
+          var d = moment(this.input.value, mformat);
+
+          if (!d.isValid()) {
+            this.clearDate();
+            this.input.value = null;
+            this.typedDate = null;
+          }
+        } else if (this.typeable && isNaN(Date.parse(this.input.value))) {
           this.clearDate();
           this.input.value = null;
           this.typedDate = null;
         }
 
-        this.$emit('closeCalendar');
+        this.$emit("closeCalendar");
       },
 
       /**
        * emit a clearDate event
        */
       clearDate: function clearDate() {
-        this.$emit('clearDate');
+        this.$emit("clearDate");
       }
     },
     mounted: function mounted() {
-      this.input = this.$el.querySelector('input');
+      this.input = this.$el.querySelector("input");
     }
-  } // eslint-disable-next-line
-  ;
+  }; // eslint-disable-next-line
 
   function normalizeComponent(template, style, script, scopeId, isFunctionalTemplate, moduleIdentifier
   /* server only */
