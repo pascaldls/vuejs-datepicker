@@ -101,5 +101,8 @@
   "directories": {
     "example": "example",
     "test": "test"
+  },
+  "dependencies": {
+    "moment": "^2.29.4"
   }
 }

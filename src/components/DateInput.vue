@@ -1,14 +1,20 @@
 <template>
-  <div :class="{'input-group' : bootstrapStyling}">
+  <div :class="{ 'input-group': bootstrapStyling }">
     <!-- Calendar Button -->
-    <span v-if="calendarButton" class="vdp-datepicker__calendar-button" :class="{'input-group-prepend' : bootstrapStyling}" @click="showCalendar" v-bind:style="{'cursor:not-allowed;' : disabled}">
-      <span :class="{'input-group-text' : bootstrapStyling}">
+    <span
+      v-if="calendarButton"
+      class="vdp-datepicker__calendar-button"
+      :class="{ 'input-group-prepend': bootstrapStyling }"
+      @click="showCalendar"
+      v-bind:style="{ 'cursor:not-allowed;': disabled }"
+    >
+      <span :class="{ 'input-group-text': bootstrapStyling }">
         <i :class="calendarButtonIcon">
           {{ calendarButtonIconContent }}
           <span v-if="!calendarButtonIcon">&hellip;</span>
         </i>
       </span>
-    </span> 
+    </span>
     <!-- Input -->
     <input
       :type="inline ? 'hidden' : 'text'"
@@ -26,10 +32,16 @@
       @click="showCalendar"
       @keyup="parseTypedDate"
       @blur="inputBlurred"
-      autocomplete="off">
+      autocomplete="off"
+    />
     <!-- Clear Button -->
-    <span v-if="clearButton && selectedDate" class="vdp-datepicker__clear-button" :class="{'input-group-append' : bootstrapStyling}" @click="clearDate()">
-      <span :class="{'input-group-text' : bootstrapStyling}">
+    <span
+      v-if="clearButton && selectedDate"
+      class="vdp-datepicker__clear-button"
+      :class="{ 'input-group-append': bootstrapStyling }"
+      @click="clearDate()"
+    >
+      <span :class="{ 'input-group-text': bootstrapStyling }">
         <i :class="clearButtonIcon">
           <span v-if="!clearButtonIcon">&times;</span>
         </i>
@@ -39,7 +51,8 @@
   </div>
 </template>
 <script>
-import { makeDateUtils } from '../utils/DateUtils'
+import moment from "moment";
+import { makeDateUtils } from "../utils/DateUtils";
 export default {
   props: {
     selectedDate: Date,
@@ -62,90 +75,96 @@ export default {
     required: Boolean,
     typeable: Boolean,
     bootstrapStyling: Boolean,
-    useUtc: Boolean
+    useUtc: Boolean,
   },
-  data () {
-    const constructedDateUtils = makeDateUtils(this.useUtc)
+  data() {
+    const constructedDateUtils = makeDateUtils(this.useUtc);
     return {
       input: null,
       typedDate: false,
-      utils: constructedDateUtils
-    }
+      utils: constructedDateUtils,
+    };
   },
   computed: {
-    formattedValue () {
+    formattedValue() {
       if (!this.selectedDate) {
-        return null
+        return null;
       }
       if (this.typedDate) {
-        return this.typedDate
+        return this.typedDate;
       }
-      return typeof this.format === 'function'
+      return typeof this.format === "function"
         ? this.format(this.selectedDate)
-        : this.utils.formatDate(new Date(this.selectedDate), this.format, this.translation)
+        : this.utils.formatDate(
+            new Date(this.selectedDate),
+            this.format,
+            this.translation
+          );
     },
 
-    computedInputClass () {
+    computedInputClass() {
       if (this.bootstrapStyling) {
-        if (typeof this.inputClass === 'string') {
-          return [this.inputClass, 'form-control'].join(' ')
+        if (typeof this.inputClass === "string") {
+          return [this.inputClass, "form-control"].join(" ");
         }
-        return {'form-control': true, ...this.inputClass}
+        return { "form-control": true, ...this.inputClass };
       }
-      return this.inputClass
-    }
+      return this.inputClass;
+    },
   },
   watch: {
-    resetTypedDate () {
-      this.typedDate = false
-    }
+    resetTypedDate() {
+      this.typedDate = false;
+    },
   },
   methods: {
-    showCalendar () {
-      this.$emit('showCalendar')
+    showCalendar() {
+      this.$emit("showCalendar");
     },
     /**
      * Attempt to parse a typed date
      * @param {Event} event
      */
-    parseTypedDate (event) {
+    parseTypedDate(event) {
       // close calendar if escape or enter are pressed
-      if ([
-        27, // escape
-        13 // enter
-      ].includes(event.keyCode)) {
-        this.input.blur()
+      if (
+        [
+          27, // escape
+          13, // enter
+        ].includes(event.keyCode)
+      ) {
+        this.input.blur();
       }
 
       if (this.typeable) {
-        let typedDate
+        let typedDate;
         /**
          * Identify the correct separator used when
          * separating day, month, and year.
          *
          * Default: "/"
          */
-        let separator = [' ', '.', ',', '-', '/'].find((val) => {
-          let count = (this.format.match(new RegExp(val, 'g')) || []).length
-          return count === 2
-        }, '/')
-        let formatParts = this.format.split(separator)
-        let dateParts = this.input.value.split(separator)
+        let separator = [" ", ".", ",", "-", "/"].find((val) => {
+          let count = (this.format.match(new RegExp(val, "g")) || []).length;
+          return count === 2;
+        }, "/");
+        let formatParts = this.format.split(separator);
+        let dateParts = this.input.value.split(separator);
         /**
          * Get each indexes/sequence for day, month,
          * and year based on the format.
          */
         let indexes = {
           day: formatParts.findIndex((part) => {
-            return part.toLowerCase().includes('d')
+            return part.toLowerCase().includes("d");
           }),
           month: formatParts.findIndex((part) => {
-            return part.toLowerCase().includes('m')
+            return part.toLowerCase().includes("m");
           }),
           year: formatParts.findIndex((part) => {
-            return part.toLowerCase().includes('y')
-          })
-        }
+            return part.toLowerCase().includes("y");
+          }),
+        };
         /**
          * Get each length of day, month, and year
          */
@@ -160,70 +179,79 @@ export default {
         let values = {
           day: dateParts[indexes.day],
           month: dateParts[indexes.month],
-          year: dateParts[indexes.year]
-        }
+          year: dateParts[indexes.year],
+        };
         /**
          * Default month number format
          */
-        let monthNum = values.month - 1
+        let monthNum = values.month - 1;
         /**
          * Only allow if day, month, and year
          * is already been typed.
          */
         // if (values.day && values.month && values.year) {
-          /**
-           * Check the length of each item (day, month, year)
-           * if its the same with the passed format.
-           */
-          // if (values.day.length === len.day.length && values.month.length === len.month.length && values.year.length === len.year.length) {
-            /**
-             * We only support until this month format ("MMM").
-             * No support yet for month format "MMMM"
-             */
-            let monthNames = [
-              'Jan', 'Feb', 'Mar',
-              'Apr', 'May', 'Jun',
-              'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'
-            ]
-            /**
-             * Check once month value is 3 characters in length
-             */
-            if ( values.month && values.month.length === 3) {
-              monthNum = monthNames.findIndex((name) => {
-                return name === values.month
-              })
-            }
-            /**
-             * Get the unix timestamp of typed date.
-             */ 
+        /**
+         * Check the length of each item (day, month, year)
+         * if its the same with the passed format.
+         */
+        // if (values.day.length === len.day.length && values.month.length === len.month.length && values.year.length === len.year.length) {
+        /**
+         * We only support until this month format ("MMM").
+         * No support yet for month format "MMMM"
+         */
+        let monthNames = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        /**
+         * Check once month value is 3 characters in length
+         */
+        if (values.month && values.month.length === 3) {
+          monthNum = monthNames.findIndex((name) => {
+            return name === values.month;
+          });
+        }
+        /**
+         * Get the unix timestamp of typed date.
+         */
         //     typedDate = new Date(values.year, monthNum, values.day).valueOf()
         //   }
-        // } 
- 
-        typedDate = this.selectedDate || new Date ;  
-        if ( values.year ){
-          if ( values.year < 100  ){ 
-            let fy = (''+ (new Date()).getFullYear() )  ; 
-            let my  =  fy.slice(-2) ; 
-            let cent = parseInt( fy.slice(0, 2)  ) ;
-            if ( values.year < my ) { 
-              values.year =   parseInt( ''.concat( cent , values.year ) );
-            }else { 
-              values.year =   parseInt( ''.concat( cent -1 , values.year ) );
+        // }
+
+        typedDate = this.selectedDate || new Date();
+        if (values.year) {
+          if (values.year < 100) {
+            let fy = "" + new Date().getFullYear();
+            let my = fy.slice(-2);
+            let cent = parseInt(fy.slice(0, 2));
+            if (values.year < my) {
+              values.year = parseInt("".concat(cent, values.year));
+            } else {
+              values.year = parseInt("".concat(cent - 1, values.year));
             }
           }
-          typedDate.setYear( values.year ) ;}
-        if (values.month &&  monthNum ) {
-          typedDate.setMonth(  monthNum ) ;}
-        if (values.day) { 
-          typedDate.setDate( values.day ) ;
-        }  
-        
+          typedDate.setYear(values.year);
+        }
+        if (values.month && monthNum) {
+          typedDate.setMonth(monthNum);
+        }
+        if (values.day) {
+          typedDate.setDate(values.day);
+        }
 
-        if ( typedDate) {
-          this.typedDate = this.input.value ;
-          this.$emit('typedDate', typedDate)
+        if (typedDate) {
+          this.typedDate = this.input.value;
+          this.$emit("typedDate", typedDate);
         }
       }
     },
@@ -231,26 +259,32 @@ export default {
      * nullify the typed date to defer to regular formatting
      * called once the input is blurred
      */
-    inputBlurred () {
-      if (this.typeable && isNaN(Date.parse(this.input.value))) {
-        this.clearDate()
-        this.input.value = null
-        this.typedDate = null
+    inputBlurred() {
+      if (typeof this.format === "string" && this.typeable) {
+        let mformat = this.format.toUpperCase();
+        let d = moment(this.input.value, mformat);
+        if (!d.isValid()) {
+          this.clearDate();
+          this.input.value = null;
+          this.typedDate = null;
+        }
+      } else if (this.typeable && isNaN(Date.parse(this.input.value))) {
+        this.clearDate();
+        this.input.value = null;
+        this.typedDate = null;
       }
-
-      this.$emit('closeCalendar')
+      this.$emit("closeCalendar");
     },
     /**
      * emit a clearDate event
      */
-    clearDate () {
-      this.$emit('clearDate')
-    }
+    clearDate() {
+      this.$emit("clearDate");
+    },
   },
-  mounted () {
-    this.input = this.$el.querySelector('input')
-  }
-}
+  mounted() {
+    this.input = this.$el.querySelector("input");
+  },
+};
 // eslint-disable-next-line
-;
 </script>
