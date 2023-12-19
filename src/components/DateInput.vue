@@ -238,6 +238,7 @@ export default {
 
         this.input.value = this.cleanDateInput(this.input.value, event);
         this.setRelativeFormat();
+
         let typedDate;
         /**
          * Identify the correct separator used when

@@ -431,7 +431,8 @@
       return {
         input: null,
         typedDate: false,
-        utils: constructedDateUtils
+        utils: constructedDateUtils,
+        relativeFormat: ""
       };
     },
     computed: {
@@ -463,17 +464,79 @@
     watch: {
       resetTypedDate: function resetTypedDate() {
         this.typedDate = false;
+      },
+      "input.value": function inputValue() {
+        this.setRelativeFormat();
       }
     },
     methods: {
       showCalendar: function showCalendar() {
         this.$emit("showCalendar");
       },
+      setRelativeFormat: function setRelativeFormat() {
+        var format = this.format.toLowerCase();
+        var input = this.input || {};
+        input = input.value || "";
+        input = input.trim();
+
+        if (input == '0') {
+          input = '';
+        }
+
+        console.log(input); // Create a string with spaces for each character entered
+
+        var filledFormat = " ".repeat(input.length); // Append the remaining part of the format
+
+        var remainingFormat = format.substr(input.length);
+        var newPlaceholder = filledFormat + remainingFormat;
+        this.relativeFormat = newPlaceholder;
+      },
 
       /**
        * Attempt to parse a typed date
        * @param {Event} event
        */
+      cleanDateInput: function cleanDateInput(input, event) {
+        var isBackspace = event.key === "Backspace";
+        var format = this.format.toLowerCase(); // Remove invalid characters
+
+        var separator = format.includes("/") ? "/" : "-"; // Remove invalid characters
+
+        var cleanedInput = input.replace(/[^\d/-]/g, ""); // Replace multiple slashes or dashes with a single one
+
+        cleanedInput = cleanedInput.replace(/\/\/+/g, "/").replace(/--+/g, "-");
+        var formatParts = format.split(separator);
+        var formattedDate = "";
+        var position = 0;
+        var cleanSplit = cleanedInput.split(separator);
+        formatParts.forEach(function (part, index) {
+          if (position < cleanedInput.length) {
+            var newText = cleanSplit[index] || "";
+            var hasNext = cleanSplit.length > index + 1; // Pad month and day with zeros if they are incomplete and there is more input
+
+            if ((part === "mm" || part === "dd") && newText.length < 2 && parseInt(newText) > 0 && hasNext) {
+              if (newText == '0') {
+                newText = '';
+              }
+
+              newText = newText.padStart(2, "0");
+            } // Convert two-digit year to four digits
+
+
+            if (part === "yyyy" && newText.length === 2) ;
+
+            newText = newText.slice(0, part.length); // Add separator if not the last part and currentText is complete
+
+            if (index < formatParts.length - 1 && newText && newText.length === part.length && (!isBackspace || hasNext)) {
+              newText += separator;
+            }
+
+            formattedDate += newText;
+            position += newText.length;
+          }
+        });
+        return formattedDate;
+      },
       parseTypedDate: function parseTypedDate(event) {
         var _this = this;
 
@@ -484,6 +547,15 @@
         }
 
         if (this.typeable) {
+          if (this.input.value === "") {
+            this.$nextTick(function () {
+              _this.clearDate();
+            });
+            return;
+          }
+
+          this.input.value = this.cleanDateInput(this.input.value, event);
+          this.setRelativeFormat();
           var typedDate;
           /**
            * Identify the correct separator used when
@@ -528,10 +600,17 @@
            */
 
           var values = {
-            day: dateParts[indexes.day],
-            month: dateParts[indexes.month],
-            year: dateParts[indexes.year]
+            day: dateParts[indexes.day] || null,
+            month: dateParts[indexes.month || null],
+            year: dateParts[indexes.year] || null
+          }; // console.log( values) ;
+
+          values = {
+            day: !isNaN(values.day) ? values.day : null,
+            month: !isNaN(values.month) ? values.month : null,
+            year: !isNaN(values.year) ? values.year : null
           };
+          console.log(values);
           /**
            * Default month number format
            */
@@ -603,6 +682,8 @@
             this.$emit("typedDate", typedDate);
           }
         }
+
+        this.setRelativeFormat();
       },
 
       /**
@@ -636,7 +717,13 @@
       }
     },
     mounted: function mounted() {
+      var _this2 = this;
+
       this.input = this.$el.querySelector("input");
+      this.setRelativeFormat();
+      this.$nextTick(function () {
+        _this2.setRelativeFormat();
+      });
     }
   }; // eslint-disable-next-line
 
@@ -767,28 +854,49 @@
             )
           : _vm._e(),
         _vm._v(" "),
-        _c("input", {
-          ref: _vm.refName,
-          class: _vm.computedInputClass,
-          attrs: {
-            type: _vm.inline ? "hidden" : "text",
-            name: _vm.name,
-            id: _vm.id,
-            "open-date": _vm.openDate,
-            placeholder: _vm.placeholder,
-            "clear-button": _vm.clearButton,
-            disabled: _vm.disabled,
-            required: _vm.required,
-            readonly: !_vm.typeable,
-            autocomplete: "off"
-          },
-          domProps: { value: _vm.formattedValue },
-          on: {
-            click: _vm.showCalendar,
-            keyup: _vm.parseTypedDate,
-            blur: _vm.inputBlurred
-          }
-        }),
+        _c("div", { staticStyle: { position: "relative" } }, [
+          _c("input", {
+            ref: _vm.refName,
+            class: _vm.computedInputClass,
+            attrs: {
+              type: _vm.inline ? "hidden" : "text",
+              name: _vm.name,
+              id: _vm.id,
+              "open-date": _vm.openDate,
+              "clear-button": _vm.clearButton,
+              disabled: _vm.disabled,
+              required: _vm.required,
+              readonly: !_vm.typeable,
+              autocomplete: "off"
+            },
+            domProps: { value: _vm.formattedValue },
+            on: {
+              click: _vm.showCalendar,
+              keyup: _vm.parseTypedDate,
+              blur: _vm.inputBlurred
+            }
+          }),
+          _vm._v(" "),
+          _c(
+            "label",
+            {
+              ref: "referenceLabel",
+              staticStyle: {
+                position: "absolute",
+                "pointer-events": "none",
+                left: "-1rem",
+                top: "0",
+                color: "grey",
+                opacity: "0.5",
+                "letter-spacing": "2px",
+                "white-space": "pre",
+                margin: "0px",
+                "line-height": "1em"
+              }
+            },
+            [_vm._v("\n      " + _vm._s(_vm.relativeFormat) + "\n    ")]
+          )
+        ]),
         _vm._v(" "),
         _vm.clearButton && _vm.selectedDate
           ? _c(
