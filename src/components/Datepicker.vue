@@ -100,6 +100,7 @@ import PickerDay from './PickerDay.vue'
 import PickerMonth from './PickerMonth.vue'
 import PickerYear from './PickerYear.vue'
 import utils, { makeDateUtils } from '../utils/DateUtils'
+import moment from 'moment'
 export default {
   components: {
     DateInput,
@@ -347,11 +348,12 @@ export default {
      * @param {Object} date
      */
     selectDate (date) {
+      // console.log( date ) ;
       this.setDate(date.timestamp)
       if (!this.isInline) {
         this.close(true)
       }
-      this.resetTypedDate = new Date()
+      this.resetTypedDate = this.selectedDate
     },
     /**
      * @param {Object} date
@@ -390,10 +392,11 @@ export default {
      * @param {Date|String|Number|null} date
      */
     setValue (date) {
-      if (typeof date === 'string' || typeof date === 'number') {
-        let parsed = new Date(date)
-        date = isNaN(parsed.valueOf()) ? null : parsed
-      }
+      let format = this.format ; 
+      if ( typeof format === 'function' ) {
+        format = format() ;
+      } 
+      date = moment( date, format.toUpperCase(), true ).toDate() ;
       if (!date) {
         this.setPageDate()
         this.selectedDate = null

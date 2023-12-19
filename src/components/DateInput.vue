@@ -131,11 +131,21 @@ export default {
     },
   },
   watch: {
-    resetTypedDate() {
+    resetTypedDate( o, n ) {
       this.typedDate = false;
-    },
-    "input.value"() {
-      this.setRelativeFormat();
+      try {
+      n = moment(n).format(this.format);
+        this.$nextTick(() => {
+          this.input.value = n;
+        });
+      } catch (error) {
+        // console.log(error);
+      }
+    }, 
+    formattedValue() {
+      this.$nextTick(() => {
+        this.setRelativeFormat();
+      });
     },
   },
   methods: {
@@ -143,14 +153,18 @@ export default {
       this.$emit("showCalendar");
     },
     setRelativeFormat() {
-      let format = this.format.toLowerCase();
+      let format = this.format ; 
+      if (typeof this.format === "function") {
+        format = this.format() ;
+      }
+       format = format.toUpperCase();
       let input = this.input || {};
       input = input.value || "";
       input = input.trim();
       if ( input == '0'){ 
         input = '';
       }
-      console.log(input);
+      // console.log(input);
 
       // Create a string with spaces for each character entered
       var filledFormat = " ".repeat(input.length);
@@ -171,7 +185,7 @@ export default {
       // Remove invalid characters
       let separator = format.includes("/") ? "/" : "-";
       // Remove invalid characters
-      let cleanedInput = input.replace(/[^\d\/-]/g, "");
+      let cleanedInput = input.replace(/[^\d/-]/g, "");
       // Replace multiple slashes or dashes with a single one
       cleanedInput = cleanedInput.replace(/\/\/+/g, "/").replace(/--+/g, "-");
       let formatParts = format.split(separator);
@@ -236,8 +250,7 @@ export default {
           return;
         }
 
-        this.input.value = this.cleanDateInput(this.input.value, event);
-        this.setRelativeFormat();
+        this.input.value = this.cleanDateInput(this.input.value, event); 
 
         let typedDate;
         /**
@@ -293,7 +306,7 @@ export default {
           year: !isNaN(values.year) ? values.year : null,
         };
 
-        console.log(values);
+        // console.log(values);
 
         /**
          * Default month number format
@@ -369,8 +382,7 @@ export default {
           this.$emit("typedDate", typedDate);
         }
       }
-
-      this.setRelativeFormat();
+ 
     },
     /**
      * nullify the typed date to defer to regular formatting

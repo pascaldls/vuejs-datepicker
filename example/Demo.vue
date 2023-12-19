@@ -11,10 +11,15 @@
 
     <div class="example">
       <h3>Typeable datepicker</h3>
-      <datepicker format="dd/MM/yyyy" value="02/02/2022" placeholder="Type or select date" :typeable="true" />
+      <datepicker format="dd/MM/yyyy" 
+      :value="currentDate"  initial-view="year" :disabledDates="{ from : new Date()}"  
+      placeholder="Type or select date" :typeable="true" 
+      @input="setInput" 
+      />
       <code>
           &lt;datepicker placeholder="Type or select date" :typeable="true"&gt;&lt;/datepicker&gt;
       </code>
+      {{ currentDate }}
     </div>
 
     <div class="example">
@@ -250,6 +255,7 @@
 </template>
 
 <script>
+import moment from 'moment'
 import Datepicker from '../src/components/Datepicker.vue'
 import * as lang from '../src/locale/index.js'
 
@@ -268,6 +274,7 @@ export default {
       format: 'd MMMM yyyy',
       disabledDates: {},
       openDate: null,
+      currentDate : '19/12/2023', 
       disabledFn: {
         customPredictor (date) {
           if (date.getDate() % 3 === 0) {
@@ -296,6 +303,9 @@ export default {
     }
   },
   methods: {
+    setInput( val ) {
+      this.currentDate = moment( val ).format("DD/MM/YYYY")
+    },
     highlightTo (val) {
       if (typeof this.highlighted.to === 'undefined') {
         this.highlighted = {
