@@ -16,24 +16,42 @@
       </span>
     </span>
     <!-- Input -->
-    <input
-      :type="inline ? 'hidden' : 'text'"
-      :class="computedInputClass"
-      :name="name"
-      :ref="refName"
-      :id="id"
-      :value="formattedValue"
-      :open-date="openDate"
-      :placeholder="placeholder"
-      :clear-button="clearButton"
-      :disabled="disabled"
-      :required="required"
-      :readonly="!typeable"
-      @click="showCalendar"
-      @keyup="parseTypedDate"
-      @blur="inputBlurred"
-      autocomplete="off"
-    />
+    <div style="position: relative">
+      <input
+        :type="inline ? 'hidden' : 'text'"
+        :class="computedInputClass"
+        :name="name"
+        :ref="refName"
+        :id="id"
+        :value="formattedValue"
+        :open-date="openDate"
+        :clear-button="clearButton"
+        :disabled="disabled"
+        :required="required"
+        :readonly="!typeable"
+        @click="showCalendar"
+        @keyup="parseTypedDate"
+        @blur="inputBlurred"
+        autocomplete="off"
+      />
+      <label
+        ref="referenceLabel"
+        style="
+          position: absolute;
+          pointer-events: none;
+          left: -1rem;
+          top: 0;
+          color: grey;
+          opacity: 0.5;
+          letter-spacing: 2px;
+          white-space: pre;
+          margin: 0px;
+          line-height: 1em;
+        "
+      >
+        {{ relativeFormat }}
+      </label>
+    </div>
     <!-- Clear Button -->
     <span
       v-if="clearButton && selectedDate"
@@ -83,6 +101,7 @@ export default {
       input: null,
       typedDate: false,
       utils: constructedDateUtils,
+      relativeFormat: "",
     };
   },
   computed: {
@@ -101,7 +120,6 @@ export default {
             this.translation
           );
     },
-
     computedInputClass() {
       if (this.bootstrapStyling) {
         if (typeof this.inputClass === "string") {
@@ -116,15 +134,89 @@ export default {
     resetTypedDate() {
       this.typedDate = false;
     },
+    "input.value"() {
+      this.setRelativeFormat();
+    },
   },
   methods: {
     showCalendar() {
       this.$emit("showCalendar");
     },
+    setRelativeFormat() {
+      let format = this.format.toLowerCase();
+      let input = this.input || {};
+      input = input.value || "";
+      input = input.trim();
+      if ( input == '0'){ 
+        input = '';
+      }
+      console.log(input);
+
+      // Create a string with spaces for each character entered
+      var filledFormat = " ".repeat(input.length);
+
+      // Append the remaining part of the format
+      var remainingFormat = format.substr(input.length);
+      var newPlaceholder = filledFormat + remainingFormat;
+
+      this.relativeFormat = newPlaceholder; 
+    },
     /**
      * Attempt to parse a typed date
      * @param {Event} event
      */
+    cleanDateInput(input, event) {
+      let isBackspace = event.key === "Backspace";
+      let format = this.format.toLowerCase();
+      // Remove invalid characters
+      let separator = format.includes("/") ? "/" : "-";
+      // Remove invalid characters
+      let cleanedInput = input.replace(/[^\d\/-]/g, "");
+      // Replace multiple slashes or dashes with a single one
+      cleanedInput = cleanedInput.replace(/\/\/+/g, "/").replace(/--+/g, "-");
+      let formatParts = format.split(separator);
+      let formattedDate = "";
+      let position = 0;
+      let cleanSplit = cleanedInput.split(separator);
+
+      formatParts.forEach((part, index) => {
+        if (position < cleanedInput.length) {
+          let newText = cleanSplit[index] || "";
+          let hasNext = cleanSplit.length > index + 1;
+          // Pad month and day with zeros if they are incomplete and there is more input
+          if (
+            (part === "mm" || part === "dd") &&
+            newText.length < 2 &&
+            parseInt(newText) > 0 &&
+            hasNext
+          ) {
+            if ( newText == '0'){ 
+              newText = '';
+            }
+            newText = newText.padStart(2, "0");
+          }
+          // Convert two-digit year to four digits
+          if (part === "yyyy" && newText.length === 2) {
+            // newText = parseInt(newText) < 50 ? '20' + newText : '19' + newText;
+          }
+          newText = newText.slice(0, part.length);
+          // Add separator if not the last part and currentText is complete
+          if (
+            index < formatParts.length - 1 &&
+            newText &&
+            newText.length === part.length &&
+            (!isBackspace || hasNext)
+          ) {
+            newText += separator;
+          }
+
+          formattedDate += newText;
+          position += newText.length;
+        }
+      });
+
+      return formattedDate;
+    },
     parseTypedDate(event) {
       // close calendar if escape or enter are pressed
       if (
@@ -137,6 +229,15 @@ export default {
       }
 
       if (this.typeable) {
+        if (this.input.value === "") {
+          this.$nextTick(() => {
+            this.clearDate();
+          });
+          return;
+        }
+
+        this.input.value = this.cleanDateInput(this.input.value, event);
+        this.setRelativeFormat();
         let typedDate;
         /**
          * Identify the correct separator used when
@@ -150,6 +251,7 @@ export default {
         }, "/");
         let formatParts = this.format.split(separator);
         let dateParts = this.input.value.split(separator);
+
         /**
          * Get each indexes/sequence for day, month,
          * and year based on the format.
@@ -177,14 +279,26 @@ export default {
          * Get each value of day, month, and year
          */
         let values = {
-          day: dateParts[indexes.day],
-          month: dateParts[indexes.month],
-          year: dateParts[indexes.year],
+          day: dateParts[indexes.day] || null,
+          month: dateParts[indexes.month || null],
+          year: dateParts[indexes.year] || null,
         };
+
+        // console.log( values) ;
+
+        values = {
+          day: !isNaN(values.day) ? values.day : null,
+          month: !isNaN(values.month) ? values.month : null,
+          year: !isNaN(values.year) ? values.year : null,
+        };
+
+        console.log(values);
+
         /**
          * Default month number format
          */
         let monthNum = values.month - 1;
+
         /**
          * Only allow if day, month, and year
          * is already been typed.
@@ -254,6 +368,8 @@ export default {
           this.$emit("typedDate", typedDate);
         }
       }
+
+      this.setRelativeFormat();
     },
     /**
      * nullify the typed date to defer to regular formatting
@@ -284,6 +400,11 @@ export default {
   },
   mounted() {
     this.input = this.$el.querySelector("input");
+
+    this.setRelativeFormat();
+    this.$nextTick(() => {
+      this.setRelativeFormat();
+    });
   },
 };
 // eslint-disable-next-line
