@@ -1,6 +1,6 @@
 {
   "name": "vuejs-datepicker-typeable",
-  "version": "1.6.8",
+  "version": "1.6.11",
   "description": "A simple Vue.js datepicker component. Supports disabling of dates, inline mode, translations",
   "keywords": [
     "vue",
@@ -103,6 +103,7 @@
     "test": "test"
   },
   "dependencies": {
+    "lodash": "^4.17.21",
     "moment": "^2.29.4"
   }
 }

@@ -22,6 +22,7 @@
       :required="required"
       :bootstrapStyling="bootstrapStyling"
       :use-utc="useUtc"
+      @showDayCalendar="showDayCalendar"
       @showCalendar="showCalendar"
       @closeCalendar="close"
       @typedDate="setTypedDate"
@@ -394,14 +395,15 @@ export default {
     setValue (date) {
       let format = this.format ; 
       if ( typeof format === 'function' ) {
-        format = format() ;
+        format = format() ; 
       } 
-      date = moment( date, format.toUpperCase(), true ).toDate() ;
-      if (!date) {
+      date = moment( date, format.toUpperCase(), true ) ; 
+      if (!date.isValid()) {
         this.setPageDate()
         this.selectedDate = null
         return
-      }
+      } 
+      date = date.toDate()
       this.selectedDate = date
       this.setPageDate(date)
     },
@@ -411,6 +413,7 @@ export default {
     setPageDate (date) {
       if (!date) {
         if (this.openDate) {
+          // 
           date = new Date(this.openDate)
         } else {
           date = new Date()

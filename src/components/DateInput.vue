@@ -134,7 +134,8 @@ export default {
     resetTypedDate( o, n ) {
       this.typedDate = false;
       try {
-      n = moment(n).format(this.format);
+        console.log( n) ;
+      n = moment(n).format(this.format.toUpperCase());
         this.$nextTick(() => {
           this.input.value = n;
         });
@@ -164,6 +165,7 @@ export default {
       if ( input == '0'){ 
         input = '';
       }
+
       // console.log(input);
 
       // Create a string with spaces for each character entered
@@ -211,7 +213,7 @@ export default {
           }
           // Convert two-digit year to four digits
           if (part === "yyyy" && newText.length === 2) {
-            // newText = parseInt(newText) < 50 ? '20' + newText : '19' + newText;
+            newText = parseInt(newText) < 50 ? '20' + newText : '19' + newText;
           }
           newText = newText.slice(0, part.length);
           // Add separator if not the last part and currentText is complete
@@ -250,7 +252,9 @@ export default {
           return;
         }
 
-        this.input.value = this.cleanDateInput(this.input.value, event); 
+        this.setRelativeFormat();
+        this.$emit("showDayCalendar"); 
+        let input = this.cleanDateInput(this.input.value, event); 
 
         let typedDate;
         /**
@@ -264,7 +268,7 @@ export default {
           return count === 2;
         }, "/");
         let formatParts = this.format.split(separator);
-        let dateParts = this.input.value.split(separator);
+        let dateParts = input.split(separator);
 
         /**
          * Get each indexes/sequence for day, month,
@@ -378,7 +382,7 @@ export default {
         }
 
         if (typedDate) {
-          this.typedDate = this.input.value;
+          this.typedDate = this.input.value; 
           this.$emit("typedDate", typedDate);
         }
       }
@@ -388,19 +392,20 @@ export default {
      * nullify the typed date to defer to regular formatting
      * called once the input is blurred
      */
-    inputBlurred() {
-      if (typeof this.format === "string" && this.typeable) {
-        let mformat = this.format.toUpperCase();
-        let d = moment(this.input.value, mformat);
+    inputBlurred() { 
+      if ( this.typeable && this.typedDate) {
+        let mformat = typeof this.format  == 'function' ? this.format() : this.format;
+         mformat = this.format.toUpperCase();
+        let d = moment(this.typedDate, mformat);
         if (!d.isValid()) {
           this.clearDate();
           this.input.value = null;
           this.typedDate = null;
-        }
-      } else if (this.typeable && isNaN(Date.parse(this.input.value))) {
-        this.clearDate();
-        this.input.value = null;
-        this.typedDate = null;
+        }else {
+          const val = d.format(mformat);
+          this.input.value = val;
+          this.typedDate = val;
+        }       
       }
       this.$emit("closeCalendar");
     },
@@ -413,7 +418,6 @@ export default {
   },
   mounted() {
     this.input = this.$el.querySelector("input");
-
     this.setRelativeFormat();
     this.$nextTick(() => {
       this.setRelativeFormat();
