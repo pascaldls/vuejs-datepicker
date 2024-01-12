@@ -462,7 +462,7 @@ var script = {
       this.typedDate = false;
 
       try {
-        console.log(n);
+        // console.log( n) ;
         n = moment(n).format(this.format.toUpperCase());
         this.$nextTick(function () {
           _this.input.value = n;
